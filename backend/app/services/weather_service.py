@@ -1,26 +1,29 @@
 # backend/app/services/weather_service.py
 from datetime import datetime
 from typing import Dict, List, Optional
-import requests 
+import requests
 from .cache_service import WeatherCache
+from ..models import WeatherRecord
+from .. import db
+
+class WeatherServiceError(Exception):
+    """Custom exception for weather service errors"""
+    pass
 
 class WeatherService:
     """
-    Service for handling weather data fetching and processing.
-    Implements caching adn the Oberserver pattern ofr real-time updates.
+    Service for handling weather data fetching, caching, and storage.
+    Implements caching and the Observer pattern for real-time updates.
     """
-
+    
     def __init__(self, api_key: str):
         self._api_key = api_key
         self._cache = WeatherCache(cache_duration_minutes=30)
-        self._observers: List[callable] = [] # For Observer pattern
+        self._observers: List[callable] = []  # For Observer pattern
         self._base_url = "https://api.openweathermap.org/data/2.5"
 
     def add_observer(self, observer: callable) -> None:
-        """
-        Add an observer for weather updates.
-        Implements the Observer pattern.
-        """
+        """Add an observer for weather updates."""
         self._observers.append(observer)
 
     def remove_observer(self, observer: callable) -> None:
@@ -28,27 +31,28 @@ class WeatherService:
         self._observers = [obs for obs in self._observers if obs != observer]
 
     def _notify_observers(self, data: Dict) -> None:
-        """Notify all obervers of new weather data."""
+        """Notify all observers of new weather data."""
         for observer in self._observers:
             observer(data)
-    
+
     def get_weather(self, location: str) -> Dict:
         """
         Get weather data for a location, using cache when available.
         
         Args:
             location: City name or coordinates
-        
+            
         Returns:
-            processed weather data dictionary
-        
-        Time Complexity: 0(1) for cache hit, 0(n) for processing on cache miss
+            Processed weather data dictionary
+            
+        Raises:
+            WeatherServiceError: If weather data cannot be fetched
         """
         # Try to get from cache first
         cached_data = self._cache.get(location)
         if cached_data:
             return cached_data
-        
+
         # If not in cache, fetch from API
         try:
             response = requests.get(
@@ -56,28 +60,24 @@ class WeatherService:
                 params={
                     "q": location,
                     "appid": self._api_key,
-                    "units": "metrics"
+                    "units": "metric"
                 }
             )
             response.raise_for_status()
             data = response.json()
-
-            # Process the raw weather data
+            
+            # Process and store the data
             processed_data = self._process_weather_data(data)
-
-            # Cache the processed results
             self._cache.set(location, processed_data)
-
+            self._save_weather_record(location, processed_data)
+            
             # Notify observers of new data
             self._notify_observers(processed_data)
-
+            
             return processed_data
-    
+            
         except requests.exceptions.RequestException as e:
-            # Log error and raise custom exception
-            print(f"Error fetching weather data: {e}")
             raise WeatherServiceError(f"Failed to fetch weather data: {str(e)}")
-
 
     def _process_weather_data(self, raw_data: Dict) -> Dict:
         """
@@ -100,28 +100,25 @@ class WeatherService:
             "description": raw_data["weather"][0]["description"],
             "timestamp": datetime.now().isoformat()
         }
-    
+
     def _save_weather_record(self, location: str, data: Dict) -> None:
-        """
-        Save weather data to database.
-        Implementation of persistence layer.
-        """
+        """Save weather data to database."""
         record = WeatherRecord(
             location=location,
-            temperature=data['temperature']['current'],
-            humidity=data['humidity'],
-            wind_speed=data['wind']['speed'],
-            description=data['description'],
-            raw_data=data # store complete processed data
+            temperature=data["temperature"]["current"],
+            humidity=data["humidity"],
+            wind_speed=data["wind"]["speed"],
+            description=data["description"],
+            raw_data=data
         )
-
+        
         db.session.add(record)
         db.session.commit()
-    
-    def get_historical_data(self, location: str, days int = 7) -> List[Dict]:
+
+    def get_historical_data(self, location: str, days: int = 7) -> List[Dict]:
         """
         Retrieve historical weather data for location.
-        Time Complexity: 0(n) where n is number of records.
+        Time Complexity: O(n) where n is number of records
         """
         records = WeatherRecord.query\
             .filter_by(location=location)\
@@ -130,7 +127,3 @@ class WeatherService:
             .all()
         
         return [record.raw_data for record in records]
-
-class WeatherServiceError(Exception):
-    """Custom exception for weather service errors."""
-    pass

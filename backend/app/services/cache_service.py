@@ -5,20 +5,16 @@ from typing import Dict, Tuple, Optional, Any
 class WeatherCache:
     """
     A cache service for weather data implementing a simple time-based invalidation strategy.
-    
-    Attributes:
-        _cache (Dict): Internal cache storage
-        _cache_duration (timedelta): How long cache entries remaiain valid
     """
-
+    
     def __init__(self, cache_duration_minutes: int = 30):
         self._cache: Dict[str, Tuple[Any, datetime]] = {}
         self._cache_duration = timedelta(minutes=cache_duration_minutes)
-
+    
     def get(self, key: str) -> Optional[Any]:
         """
         Retrieve data from cache if it exists and is still valid.
-        Time Complexity: 0(1) = constant time lookup.
+        Time Complexity: O(1) - constant time lookup
         """
         if key in self._cache:
             data, timestamp = self._cache[key]
@@ -32,10 +28,10 @@ class WeatherCache:
     def set(self, key: str, data: Any) -> None:
         """
         Store data in cache with current timestamp.
-        Time Complexity: 0(1) - constant time insertion.
+        Time Complexity: O(1) - constant time insertion
         """
         self._cache[key] = (data, datetime.now())
-
-    def clear(self) -> None: 
-        """Clear all cache entrires."""
+    
+    def clear(self) -> None:
+        """Clear all cache entries."""
         self._cache.clear()
