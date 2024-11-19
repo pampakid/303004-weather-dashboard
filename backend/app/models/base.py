@@ -1,8 +1,6 @@
 # backend/app/models/base.py
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from .. import db
 
 class BaseModel(db.Model):
     """Base model with common fields"""
