@@ -1,15 +1,21 @@
-# Python
-__pycache__/
-*.py[cod]
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+migrations/
+postgres-data/
+
+# Environment variables
+.env*
+!.env.example
 venv/
-*.env
 
-# Node
-node_modules/
-build/
-.env
-.env.local
+# Development database dumps
+*.dump
+*.sql
+*.bak
 
-# IDE
-.vscode/
-.idea/
+# Logs
+*.log
+logs/
