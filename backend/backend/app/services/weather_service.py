@@ -78,10 +78,11 @@ class WeatherService:
             print(f"Error fetching weather data: {e}")
             raise WeatherServiceError(f"Failed to fetch weather data: {str(e)}")
 
+
     def _process_weather_data(self, raw_data: Dict) -> Dict:
         """
         Process raw weather API data into a more usable format.
-        Time Complexity: 0(1) as we are processing a fixed number of fields.
+        Time Complexity: O(1) as we're processing a fixed number of fields
         """
         return {
             "location": raw_data["name"],
@@ -91,10 +92,44 @@ class WeatherService:
                 "min": raw_data["main"]["temp_min"],
                 "max": raw_data["main"]["temp_max"]
             },
+            "humidity": raw_data["main"]["humidity"],
+            "wind": {
+                "speed": raw_data["wind"]["speed"],
+                "direction": raw_data["wind"]["deg"]
+            },
             "description": raw_data["weather"][0]["description"],
             "timestamp": datetime.now().isoformat()
         }
     
+    def _save_weather_record(self, location: str, data: Dict) -> None:
+        """
+        Save weather data to database.
+        Implementation of persistence layer.
+        """
+        record = WeatherRecord(
+            location=location,
+            temperature=data['temperature']['current'],
+            humidity=data['humidity'],
+            wind_speed=data['wind']['speed'],
+            description=data['description'],
+            raw_data=data # store complete processed data
+        )
+
+        db.session.add(record)
+        db.session.commit()
+    
+    def get_historical_data(self, location: str, days int = 7) -> List[Dict]:
+        """
+        Retrieve historical weather data for location.
+        Time Complexity: 0(n) where n is number of records.
+        """
+        records = WeatherRecord.query\
+            .filter_by(location=location)\
+            .order_by(WeatherRecord.created_at.desc())\
+            .limit(days * 24)\
+            .all()
+        
+        return [record.raw_data for record in records]
 
 class WeatherServiceError(Exception):
     """Custom exception for weather service errors."""
