@@ -13,14 +13,13 @@ class WeatherServiceError(Exception):
 class WeatherService:
     """
     Service for handling weather data fetching, caching, and storage.
-    Implements caching and the Observer pattern for real-time updates.
     """
     
     def __init__(self, api_key: str):
         self._api_key = api_key
         self._cache = WeatherCache(cache_duration_minutes=30)
-        self._observers: List[callable] = []  # For Observer pattern
-        self._base_url = "https://api.openweathermap.org/data/2.5"
+        self._observers: List[callable] = []
+        self._base_url = "http://api.openweathermap.org/data/2.5"
 
     def add_observer(self, observer: callable) -> None:
         """Add an observer for weather updates."""
@@ -38,15 +37,6 @@ class WeatherService:
     def get_weather(self, location: str) -> Dict:
         """
         Get weather data for a location, using cache when available.
-        
-        Args:
-            location: City name or coordinates
-            
-        Returns:
-            Processed weather data dictionary
-            
-        Raises:
-            WeatherServiceError: If weather data cannot be fetched
         """
         # Try to get from cache first
         cached_data = self._cache.get(location)
@@ -55,14 +45,21 @@ class WeatherService:
 
         # If not in cache, fetch from API
         try:
-            response = requests.get(
-                f"{self._base_url}/weather",
-                params={
-                    "q": location,
-                    "appid": self._api_key,
-                    "units": "metric"
-                }
-            )
+            # Print the URL we're calling (for debugging)
+            url = f"{self._base_url}/weather"
+            params = {
+                "q": location,
+                "appid": self._api_key,
+                "units": "metric"
+            }
+            print(f"Calling API: {url} with params: {params}")
+
+            response = requests.get(url, params=params)
+            
+            # Print response status and content for debugging
+            print(f"API Response Status: {response.status_code}")
+            print(f"API Response Content: {response.text}")
+            
             response.raise_for_status()
             data = response.json()
             
@@ -77,12 +74,13 @@ class WeatherService:
             return processed_data
             
         except requests.exceptions.RequestException as e:
-            raise WeatherServiceError(f"Failed to fetch weather data: {str(e)}")
+            raise WeatherServiceError(f"Failed to fetch weather data: {str(e)} - API key might not be activated yet")
+        except Exception as e:
+            raise WeatherServiceError(f"Unexpected error: {str(e)}")
 
     def _process_weather_data(self, raw_data: Dict) -> Dict:
         """
         Process raw weather API data into a more usable format.
-        Time Complexity: O(1) as we're processing a fixed number of fields
         """
         return {
             "location": raw_data["name"],
@@ -95,7 +93,7 @@ class WeatherService:
             "humidity": raw_data["main"]["humidity"],
             "wind": {
                 "speed": raw_data["wind"]["speed"],
-                "direction": raw_data["wind"]["deg"]
+                "direction": raw_data["wind"].get("deg", 0)
             },
             "description": raw_data["weather"][0]["description"],
             "timestamp": datetime.now().isoformat()
@@ -117,7 +115,7 @@ class WeatherService:
 
     def get_historical_data(self, location: str, days: int = 7) -> List[Dict]:
         """
-        Retrieve historical weather data for location.
+        Retrieve historical weather data from our database (not from API).
         Time Complexity: O(n) where n is number of records
         """
         records = WeatherRecord.query\
