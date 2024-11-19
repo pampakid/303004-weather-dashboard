@@ -16,7 +16,20 @@ def get_weather(location):
         weather_data = weather_service.get_weather(location)
         return jsonify(weather_data)
     except WeatherServiceError as e:
-        return jsonify({"error": str(e)}), 500
+        # Add more detailed error information
+        return jsonify({
+            "error": str(e),
+            "type": "WeatherServiceError",
+            "details": "API key might not be activated yet"
+        }), 503  # Service Unavailable
+    except Exception as e:
+        # Log any unexpected errors
+        print(f"Unexpected error: {str(e)}")
+        return jsonify({
+            "error": "Internal server error",
+            "type": str(type(e).__name__),
+            "details": str(e)
+        }), 500
 
 @weather_bp.route('/weather/history/<location>')
 def get_weather_history(location):
