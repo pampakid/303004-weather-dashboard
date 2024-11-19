@@ -1,3 +1,19 @@
+# .gitignore
+# Python
+__pycache__/
+*.py[cod]
+venv/
+*.env
+
+# Node
+node_modules/
+build/
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
 
 # Database
 *.db
@@ -9,7 +25,6 @@ postgres-data/
 # Environment variables
 .env*
 !.env.example
-venv/
 
 # Development database dumps
 *.dump
