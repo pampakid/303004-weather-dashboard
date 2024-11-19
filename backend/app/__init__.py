@@ -26,8 +26,8 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     
-    # Register blueprints (we'll add these as we create them)
-    # from .routes.weather import weather_bp
-    # app.register_blueprint(weather_bp)
+    # Register blueprints
+    from .routes import weather_bp
+    app.register_blueprint(weather_bp)
     
     return app
