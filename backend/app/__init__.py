@@ -16,7 +16,15 @@ migrate = Migrate()
 def create_app():
     """Application factory function"""
     app = Flask(__name__)
-    CORS(app)
+    
+    # Configure CORS
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["http://localhost:3000"],  # React's default port
+            "methods": ["GET", "POST", "PUT", "DELETE"],
+            "allow_headers": ["Content-Type"]
+        }
+    })
     
     # Configure the database
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
