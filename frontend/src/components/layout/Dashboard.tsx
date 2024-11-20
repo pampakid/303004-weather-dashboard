@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 
 interface DashboardProps {
@@ -6,9 +6,15 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ children }) => {
-  const [darkMode, setDarkMode] = React.useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    // Check if user prefers dark mode
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setDarkMode(true);
+    }
+
+    // Apply dark mode class
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
