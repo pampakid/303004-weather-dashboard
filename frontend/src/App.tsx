@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Dashboard from './components/layout/Dashboard';
 import SearchLocation from './components/weather/SearchLocation';
 import CurrentWeather from './components/weather/CurrentWeather';
+import TemperatureChart from './components/weather/TemperatureChart';
+import WeatherDetails from './components/weather/WeatherDetails';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import { weatherService, WeatherData } from './services/api';
 
@@ -38,7 +40,8 @@ function App() {
       ) : weatherData ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <CurrentWeather data={weatherData} />
-          {/* We'll add more weather components here */}
+          <TemperatureChart data={weatherData} />
+          <WeatherDetails data={weatherData} />
         </div>
       ) : (
         <div className="text-center text-gray-500 dark:text-gray-400">
