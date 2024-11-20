@@ -1,25 +1,51 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import Dashboard from './components/layout/Dashboard';
+import SearchLocation from './components/weather/SearchLocation';
+import CurrentWeather from './components/weather/CurrentWeather';
+import LoadingSpinner from './components/ui/LoadingSpinner';
+import { weatherService, WeatherData } from './services/api';
 
 function App() {
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSearch = async (location: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await weatherService.getCurrentWeather(location);
+      setWeatherData(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to fetch weather data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Dashboard>
+      <SearchLocation onSearch={handleSearch} />
+      
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+          {error}
+        </div>
+      )}
+      
+      {loading ? (
+        <LoadingSpinner />
+      ) : weatherData ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <CurrentWeather data={weatherData} />
+          {/* We'll add more weather components here */}
+        </div>
+      ) : (
+        <div className="text-center text-gray-500 dark:text-gray-400">
+          Search for a location to see weather information
+        </div>
+      )}
+    </Dashboard>
   );
 }
 
