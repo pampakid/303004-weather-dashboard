@@ -8,6 +8,10 @@
     ],
     "rewrites": [
       {
+        "source": "/api/**",
+        "destination": "https://three03004-weather-dashboard.onrender.com/api/**"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

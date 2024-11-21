@@ -19,9 +19,9 @@ def create_app():
     CORS(app, resources={
         r"/api/*": {
             "origins": [
-                "http://localhost:3000",                    # Local development
-                "https://weather-dashboard-2b0ac.web.app",        # Replace with your Firebase URL
-                "https://weather-dashboard-2b0ac.firebaseapp.com" # Replace with your Firebase URL
+                "http://localhost:3000",                            # Local development
+                "https://weather-dashboard-2b0ac.web.app",          # Replace with your Firebase URL
+                "https://weather-dashboard-2b0ac.firebaseapp.com"   # Replace with your Firebase URL
             ],
             "methods": ["GET", "POST", "PUT", "DELETE"],
             "allow_headers": ["Content-Type"]
@@ -40,5 +40,10 @@ def create_app():
     # Register blueprints
     from .routes.weather import weather_bp
     app.register_blueprint(weather_bp)
+
+    # Add root route
+    @app.route('/')
+    def index():
+        return jsonify({"message": "Weather Dashboard API", "status": "active"})
     
     return app
