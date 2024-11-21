@@ -1,5 +1,5 @@
 # backend/app/__init__.py 
-from flask import Flask
+from flask import Flask, jsonify  # Add jsonify to imports
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -15,33 +15,35 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
-    # Configure CORS
+    
+    # Configure CORS with specific origins
     CORS(app, resources={
         r"/api/*": {
             "origins": [
-                "http://localhost:3000",                            # Local development
-                "https://weather-dashboard-2b0ac.web.app",          # Replace with your Firebase URL
-                "https://weather-dashboard-2b0ac.firebaseapp.com"   # Replace with your Firebase URL
+                "http://localhost:3000",
+                "https://weather-dashboard-2b0ac.web.app",     # Your Firebase URL
+                "https://weather-dashboard-2b0ac.firebaseapp.com"
             ],
             "methods": ["GET", "POST", "PUT", "DELETE"],
             "allow_headers": ["Content-Type"]
         }
     })
-    
-    # Configure the database if DATABASE_URL is provided
+
+    # Initialize database only if DATABASE_URL is provided
     if os.getenv('DATABASE_URL'):
         app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        
-        # Initialize extensions
         db.init_app(app)
         migrate.init_app(app, db)
-    
+    else:
+        # Add dummy config to prevent SQLAlchemy errors
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
+        db.init_app(app)
+
     # Register blueprints
     from .routes.weather import weather_bp
     app.register_blueprint(weather_bp)
 
-    # Add root route
     @app.route('/')
     def index():
         return jsonify({"message": "Weather Dashboard API", "status": "active"})

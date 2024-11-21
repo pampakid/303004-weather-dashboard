@@ -100,18 +100,22 @@ class WeatherService:
         }
 
     def _save_weather_record(self, location: str, data: Dict) -> None:
-        """Save weather data to database."""
-        record = WeatherRecord(
-            location=location,
-            temperature=data["temperature"]["current"],
-            humidity=data["humidity"],
-            wind_speed=data["wind"]["speed"],
-            description=data["description"],
-            raw_data=data
-        )
-        
-        db.session.add(record)
-        db.session.commit()
+        """Save weather data to database if available."""
+        if os.getenv('DATABASE_URL'):
+            try:
+                record = WeatherRecord(
+                    location=location,
+                    temperature=data["temperature"]["current"],
+                    humidity=data["humidity"],
+                    wind_speed=data["wind"]["speed"],
+                    description=data["description"],
+                    raw_data=data
+                )
+                db.session.add(record)
+                db.session.commit()
+            except Exception as e:
+                print(f"Failed to save to database: {e}")
+                # Continue without saving to database
 
     def get_historical_data(self, location: str, days: int = 7) -> List[Dict]:
         """

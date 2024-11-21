@@ -1,6 +1,7 @@
 # backend/app/routes/weather.py
 from flask import Blueprint, jsonify, request
-from ..services import WeatherService, WeatherServiceError
+from ..services.weather_service import WeatherService, WeatherServiceError
+from .. import db
 import os
 
 weather_bp = Blueprint('weather', __name__, url_prefix='/api/v1')
@@ -9,27 +10,26 @@ weather_service = WeatherService(api_key=os.getenv('WEATHER_API_KEY'))
 @weather_bp.route('/weather/<location>')
 def get_weather(location):
     """
-    Get current weather data for a specific location.
+    Get weather data for a specific location.
     Uses caching and implements proper error handling.
     """
     try:
         weather_data = weather_service.get_weather(location)
+        
+        # Only try to save to database if it's configured
+        if os.getenv('DATABASE_URL'):
+            try:
+                # Your database operations here
+                pass
+            except Exception as db_error:
+                print(f"Database error: {db_error}")
+                # Continue without database operations
+        
         return jsonify(weather_data)
     except WeatherServiceError as e:
-        # Add more detailed error information
-        return jsonify({
-            "error": str(e),
-            "type": "WeatherServiceError",
-            "details": "API key might not be activated yet"
-        }), 503  # Service Unavailable
+        return jsonify({"error": str(e)}), 500
     except Exception as e:
-        # Log any unexpected errors
-        print(f"Unexpected error: {str(e)}")
-        return jsonify({
-            "error": "Internal server error",
-            "type": str(type(e).__name__),
-            "details": str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
 @weather_bp.route('/weather/history/<location>')
 def get_weather_history(location):
