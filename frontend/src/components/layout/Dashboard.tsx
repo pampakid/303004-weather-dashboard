@@ -6,21 +6,26 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ children }) => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check if user previously set a preference
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
 
   useEffect(() => {
-    // Check if user prefers dark mode
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setDarkMode(true);
-    }
-
-    // Apply dark mode class
+    // Update class on document
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    // Save preference
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
@@ -30,7 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
             Weather Dashboard
           </h1>
           <button
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={toggleDarkMode}
             className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             aria-label="Toggle dark mode"
           >
