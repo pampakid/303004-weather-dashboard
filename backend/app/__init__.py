@@ -15,7 +15,18 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    # Configure CORS
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": [
+                "http://localhost:3000",                    # Local development
+                "https://weather-dashboard-2b0ac.web.app",        # Replace with your Firebase URL
+                "https://weather-dashboard-2b0ac.firebaseapp.com" # Replace with your Firebase URL
+            ],
+            "methods": ["GET", "POST", "PUT", "DELETE"],
+            "allow_headers": ["Content-Type"]
+        }
+    })
     
     # Configure the database if DATABASE_URL is provided
     if os.getenv('DATABASE_URL'):
