@@ -7,19 +7,16 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ children }) => {
   const [darkMode, setDarkMode] = useState(() => {
-    // Check if user previously set a preference
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? JSON.parse(savedMode) : false;
   });
 
   useEffect(() => {
-    // Update class on document
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    // Save preference
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
@@ -28,10 +25,10 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
       <div className="container mx-auto px-4 py-8">
         <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-weather-primary dark:text-white">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Weather Dashboard
           </h1>
           <button
