@@ -4,7 +4,7 @@ services:
     env: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn 'wsgi:app'  # Note the quotes and correct path
+    startCommand: cd backend && gunicorn 'wsgi:app'  # Note the quotes and correct path
     envVars:
       - key: FLASK_APP
         value: wsgi.py
