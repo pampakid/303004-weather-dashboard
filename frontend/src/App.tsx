@@ -3,6 +3,7 @@ import Dashboard from './components/layout/Dashboard';
 import SearchLocation from './components/weather/SearchLocation';
 import CurrentWeather from './components/weather/CurrentWeather';
 import TemperatureChart from './components/weather/TemperatureChart';
+import WeeklyForecast from './components/weather/WeeklyForecast';
 import { weatherService, WeatherData } from './services/api';
 
 function App() {
@@ -38,9 +39,12 @@ function App() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-weather-primary"></div>
         </div>
       ) : weatherData ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CurrentWeather data={weatherData} />
-          <TemperatureChart data={weatherData} />
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CurrentWeather data={weatherData} />
+            <TemperatureChart data={weatherData} />
+          </div>
+          <WeeklyForecast data={weatherData} />
         </div>
       ) : (
         <div className="text-center text-gray-500 dark:text-gray-400 p-8">
