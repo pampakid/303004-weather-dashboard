@@ -2,6 +2,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional
 import requests
+import os
 from .cache_service import WeatherCache
 from ..models import WeatherRecord
 from .. import db
